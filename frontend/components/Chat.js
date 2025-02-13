@@ -9,40 +9,42 @@ export const Chat = () => {
     const [aiResponse, setAIResponse] = useState("");
     const [displayText, setDisplayText] = useState("");
     const [typingIndex, setTypingIndex] = useState(0);
-    const [showInitialMessage, setShowInitialMessage] = useState(true);
+    const [isTyping, setIsTyping] = useState(false);
     const initialMessage = "Hello, I'm your AI Brand Manager. I analyze your brand's sentiments present in social platforms and news media sources.";
 
+    // Handle text typing for both initial message and responses
     useEffect(() => {
-        if (showInitialMessage && !aiResponse) {
-          setTypingIndex(0);
-          setDisplayText('');
-        }
-    }, [showInitialMessage, aiResponse]);
+        let textToType = initialMessage;
+        
+        if (isTyping && typingIndex < textToType.length) {
+            const timer = setTimeout(() => {
+                setDisplayText(textToType.slice(0, typingIndex + 1));
+                setTypingIndex(prev => prev + 1);
+            }, 50);
 
-    // Typing effect logic
-    useEffect(() => {
-        if (showInitialMessage && !aiResponse)  {
-            const timer = setInterval(() => {
-            setTypingIndex((prev) => {
-                if (prev >= initialMessage.length) {
-                clearInterval(timer);
-                return prev;
-                }
-                setDisplayText(initialMessage.slice(0, prev + 1));
-                return prev + 1;
-            });
-            }, 50); // Adjust typing speed here
-
-            return () => clearInterval(timer);
-        }
-    }, [showInitialMessage, aiResponse, initialMessage]);
-
-      // Handle AI response updates
-    useEffect(() => {
-        if (aiResponse) {
-        setShowInitialMessage(false);
+            return () => clearTimeout(timer);
         } else {
-        setShowInitialMessage(true);
+            setIsTyping(false);
+        }
+    }, [typingIndex, isTyping, aiResponse, initialMessage]);
+
+    // Trigger typing when response changes
+    useEffect(() => {
+        if (!aiResponse) { // Handle both initial state and responses
+            setIsTyping(true);
+            setTypingIndex(0);
+            setDisplayText('');
+        }
+        let textToType = aiResponse
+        if (isTyping && typingIndex < textToType.length) {
+            const timer = setTimeout(() => {
+                setDisplayText(textToType.slice(0, typingIndex + 1));
+                setTypingIndex(prev => prev + 1);
+            }, 50);
+
+            return () => clearTimeout(timer);
+        } else {
+            setIsTyping(false);
         }
     }, [aiResponse]);
 
@@ -87,17 +89,18 @@ export const Chat = () => {
                     <div className="relative h-96 rounded-lg w-full bg-sky-100 border border-gray-300">
                         {!aiResponse ? 
                             <p className="mx-2 my-2 font-normal text-gray-500 whitespace-pre-wrap">
-                                {displayText}
-                                {typingIndex < initialMessage.length && (
-              <span className="ml-1 border-r-2 border-black animate-blink"></span>
-            )}
+                            {displayText}
+                                {isTyping && (
+                                <span className="ml-1 border-r-2 border-black animate-blink"></span>
+                                )
+                            }
                             </p> : 
                             <p className="mx-2 my-2 font-normal text-gray-500 whitespace-pre-wrap">
                                 {aiResponse}
                                 <span className="ml-1 border-r-2 border-black animate-blink"></span>
                             </p>
                                 }
-                        <textarea onChange={(e) => { setUserInput(userInput => e.target.value )}} id="message" rows="4" className="absolute bottom-0 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Analyze your brand image!"></textarea>
+                        <textarea onChange={(e) => { setUserInput(userInput => e.target.value )}} id="message" rows="4" className="z-0 absolute bottom-0 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Analyze your brand image!"></textarea>
                     </div>
                     <button onClick={askHandler} type="button" className="mt-4 mb-4 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Ask</button>
                     <div role="status" className={`absolute ${!isLoading ? "hidden" : ""} -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2`}>
