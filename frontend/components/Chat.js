@@ -10,44 +10,40 @@ export const Chat = () => {
     const [displayText, setDisplayText] = useState("");
     const [typingIndex, setTypingIndex] = useState(0);
     const [isTyping, setIsTyping] = useState(false);
+    const [targetText, setTargetText] = useState("");
     const initialMessage = "Hello, I'm your AI Brand Manager. I analyze your brand's sentiments present in social platforms and news media sources.";
 
-    // Handle text typing for both initial message and responses
+    // Typing effect controller
     useEffect(() => {
-        let textToType = initialMessage;
-        
-        if (isTyping && typingIndex < textToType.length) {
-            const timer = setTimeout(() => {
-                setDisplayText(textToType.slice(0, typingIndex + 1));
-                setTypingIndex(prev => prev + 1);
-            }, 50);
+        if (isTyping && typingIndex < targetText.length) {
+        const timer = setTimeout(() => {
+            setDisplayText(prev => prev + targetText[typingIndex]);
+            setTypingIndex(prev => prev + 1);
+        }, 20);
 
-            return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
         } else {
             setIsTyping(false);
         }
-    }, [typingIndex, isTyping, aiResponse, initialMessage]);
+    }, [typingIndex, isTyping, targetText]);
 
-    // Trigger typing when response changes
+    // Handle text updates
     useEffect(() => {
-        if (!aiResponse) { // Handle both initial state and responses
-            setIsTyping(true);
-            setTypingIndex(0);
+        if (aiResponse) {
+            // Start typing AI response
+            setTargetText(aiResponse);
             setDisplayText('');
-        }
-        let textToType = aiResponse
-        if (isTyping && typingIndex < textToType.length) {
-            const timer = setTimeout(() => {
-                setDisplayText(textToType.slice(0, typingIndex + 1));
-                setTypingIndex(prev => prev + 1);
-            }, 50);
-
-            return () => clearTimeout(timer);
+            setTypingIndex(0);
+            setIsTyping(true);
         } else {
-            setIsTyping(false);
+            // Start typing initial message
+            setTargetText(initialMessage);
+            setDisplayText('');
+            setTypingIndex(0);
+            setIsTyping(true);
         }
     }, [aiResponse]);
-
+  
     const askHandler = async () => {
         setIsLoading(true);
         setAIResponse("");
@@ -63,7 +59,7 @@ export const Chat = () => {
             // });
 
             setAIResponse(
-                "The chat bubble component is the building block for creating chat interfaces where users can send messages to each other by text, voice notes, images, galleries and other attachments. These components are usually used in chat applications and social media platforms such as Facebook, Twitter/X, WhatsApp, and more."+
+                "bubble component is the building block for creating chat interfaces where users can send messages to each other by text, voice notes, images, galleries and other attachments. These components are usually used in chat applications and social media platforms such as Facebook, Twitter/X, WhatsApp, and more."+
                 "The examples below provide multiple variations of default, outline, and clean styles coded with the utility classes from Tailwind CSS. Some of the components may require you to include the Flowbite JavaScript to enable the dropdowns and tooltips functionality."
             )
 
@@ -96,8 +92,11 @@ export const Chat = () => {
                             }
                             </p> : 
                             <p className="mx-2 my-2 font-normal text-gray-500 whitespace-pre-wrap">
-                                {aiResponse}
+                            {displayText}
+                                {isTyping && (
                                 <span className="ml-1 border-r-2 border-black animate-blink"></span>
+                                )
+                            }
                             </p>
                                 }
                         <textarea onChange={(e) => { setUserInput(userInput => e.target.value )}} id="message" rows="4" className="z-0 absolute bottom-0 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Analyze your brand image!"></textarea>
